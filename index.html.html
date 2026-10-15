@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>數學小學堂 Math Learning Playground</title>
+  <style>
+    /* ==========================================================================
+       1. 全域樣式與主題配色 (CSS Variables)
+       ========================================================================== */
+    :root {
+      --primary-yellow: #FFD166;
+      --primary-blue: #4EA8DE;
+      --dark-blue: #2B2D42;
+      --accent-green: #06D6A0;
+      --accent-pink: #EF476F;
+      --accent-purple: #118AB2;
+      --bg-cream: #FFFDF9;
+      --card-bg: #FFFFFF;
+      --text-dark: #2B2D42;
+      --text-muted: #6C757D;
+      --border-radius: 20px;
+      --box-shadow: 0 8px 24px rgba(43, 45, 66, 0.08);
+      --transition: all 0.25s ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-cream);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    /* ==========================================================================
+       2. 頂部導覽列與狀態資訊
+       ========================================================================== */
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      margin-bottom: 20px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+    }
+
+    .logo-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-blue);
+    }
+
+    .user-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: #FFF9E6;
+      padding: 6px 14px;
+      border-radius: 50px;
+      border: 2px solid var(--primary-yellow);
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+
+    .btn-icon:hover {
+      background: #F0F0F0;
+      transform: scale(1.1);
+    }
+
+    /* ==========================================================================
+       3. 畫面容器與頁面切換
+       ========================================================================== */
+    main {
+      width: 100%;
+      max-width: 900px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view-section {
+      display: none;
+      width: 100%;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       4. 畫面一：首頁與模式選擇
+       ========================================================================== */
+    .hero-banner {
+      background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
+      border-radius: var(--border-radius);
+      padding: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      box-shadow: var(--box-shadow);
+    }
+
+    .hero-text h1 {
+      font-size: 2rem;
+      color: var(--dark-blue);
+      margin-bottom: 8px;
+    }
+
+    .hero-text p {
+      font-size: 1.1rem;
+      color: #0369A1;
+    }
+
+    .mascot-avatar {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .mode-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      text-align: center;
+      box-shadow: var(--box-shadow);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 3px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .mode-card.practice { border-color: var(--primary-blue); }
+    .mode-card.timed { border-color: var(--accent-pink); }
+    .mode-card.adventure { border-color: var(--accent-green); }
+
+    .mode-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .mode-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .mode-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ==========================================================================
+       5. 畫面二：答題頁 (Practice / Timed / Adventure)
+       ========================================================================== */
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      background: var(--card-bg);
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    .quiz-info {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .tag-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .bg-easy { background-color: #2ECC71; }
+    .bg-medium { background-color: #F39C12; }
+    .bg-hard { background-color: #E74C3C; }
+    .bg-info { background-color: var(--primary-blue); }
+
+    .timer-display {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--accent-pink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quiz-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 32px 24px;
+      box-shadow: var(--box-shadow);
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .question-category {
+      font-size: 0.95rem;
+      color: var(--primary-blue);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .question-text {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--dark-blue);
+      margin-bottom: 24px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .answer-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .input-wrapper {
+      width: 100%;
+      position: relative;
+    }
+
+    .answer-input {
+      width: 100%;
+      font-size: 1.5rem;
+      text-align: center;
+      padding: 12px;
+      border: 3px solid #E2E8F0;
+      border-radius: 12px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .answer-input:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 4px rgba(78, 168, 222, 0.2);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--primary-blue);
+      color: #FFF;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(78, 168, 222, 0.3);
+      transition: var(--transition);
+    }
+
+    .btn-primary:hover {
+      background: #3B82F6;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:disabled {
+      background: #CBD5E1;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* 解題步驟與回饋區 */
+    .feedback-box {
+      display: none;
+      background: #F8FAFC;
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 24px;
+      text-align: left;
+      border-left: 6px solid var(--primary-blue);
+    }
+
+    .feedback-box.correct {
+      background: #ECFDF5;
+      border-left-color: var(--accent-green);
+    }
+
+    .feedback-box.wrong {
+      background: #FEF2F2;
+      border-left-color: var(--accent-pink);
+    }
+
+    .feedback-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .feedback-box.correct .feedback-header { color: #047857; }
+    .feedback-box.wrong .feedback-header { color: #B91C1C; }
+
+    .solution-steps {
+      margin-top: 12px;
+      padding-left: 20px;
+      line-height: 1.6;
+      color: #334155;
+    }
+
+    .solution-steps li {
+      margin-bottom: 6px;
+    }
+
+    .next-action-area {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* ==========================================================================
+       6. 畫面三：闖關地圖 (Adventure Map)
+       ========================================================================== */
+    .map-container {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 32px 20px;
+      box-shadow: var(--box-shadow);
+      text-align: center;
+    }
+
+    .map-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: var(--dark-blue);
+    }
+
+    .level-path {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      position: relative;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .level-node {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: #64748B;
+      cursor: pointer;
+      position: relative;
+      border: 4px solid #CBD5E1;
+      transition: var(--transition);
+      z-index: 2;
+    }
+
+    .level-node.unlocked {
+      background: var(--primary-yellow);
+      border-color: #F59E0B;
+      color: #78350F;
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+    }
+
+    .level-node.completed {
+      background: var(--accent-green);
+      border-color: #059669;
+      color: #FFF;
+    }
+
+    .level-node.locked {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .level-stars {
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    /* ==========================================================================
+       7. 畫面四：成績與獎勵頁 (Result View)
+       ========================================================================== */
+    .result-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 32px;
+      box-shadow: var(--box-shadow);
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .result-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--dark-blue);
+      margin-bottom: 16px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .stat-item {
+      background: #F8FAFC;
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary-blue);
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .badges-unlocked {
+      margin: 16px 0;
+      padding: 12px;
+      background: #FFF9E6;
+      border-radius: 12px;
+      border: 1px dashed var(--primary-yellow);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: #E2E8F0;
+      color: #334155;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-secondary:hover {
+      background: #CBD5E1;
+    }
+
+    /* ==========================================================================
+       8. Modal 與 Alert 提示彈窗
+       ========================================================================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 28px;
+      max-width: 450px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .badge-item {
+      padding: 10px;
+      border-radius: 12px;
+      background: #F1F5F9;
+      font-size: 0.85rem;
+      opacity: 0.4;
+    }
+
+    .badge-item.earned {
+      background: #FEF3C7;
+      opacity: 1;
+      border: 2px solid #F59E0B;
+    }
+
+    .badge-icon { font-size: 2rem; margin-bottom: 4px; }
+
+    /* ==========================================================================
+       9. 響應式微調 (Responsive Design)
+       ========================================================================== */
+    @media (max-width: 600px) {
+      .hero-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+      .question-text {
+        font-size: 1.4rem;
+      }
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+      .btn-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部 Header -->
+  <header>
+    <div class="logo-area" onclick="app.showHome()">
+      <span class="logo-icon">🧮</span>
+      <span class="logo-title">數學小學堂</span>
+    </div>
+    <div class="user-stats">
+      <div class="stat-badge">
+        <span>⭐</span>
+        <span id="header-stars">0</span>
+      </div>
+      <button class="btn-icon" title="查看成就徽章" onclick="app.showBadgesModal()">🏆</button>
+      <button class="btn-icon" title="重設進度" onclick="app.confirmResetData()">⚙️</button>
+    </div>
+  </header>
+
+  <!-- 主內容容器 -->
+  <main>
+    
+    <!-- 畫面一：首頁與模式選擇 -->
+    <section id="view-home" class="view-section active">
+      <div class="hero-banner">
+        <div class="hero-text">
+          <h1>數學小學堂</h1>
+          <p>一起解題，一起收集星星！</p>
+        </div>
+        <img src="assets/dive.png" alt="吉祥物" class="mascot-avatar" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%234EA8DE\'/><text x=\'50\' y=\'60\' font-size=\'40\' text-anchor=\'middle\' fill=\'white\'>🐶</text></svg>';">
+      </div>
+
+      <div class="mode-grid">
+        <div class="mode-card practice" onclick="app.startPracticeMode()">
+          <div class="mode-icon">✏️</div>
+          <div class="mode-title">自由練習</div>
+          <div class="mode-desc">無時間壓力，自由選擇題型，依照答題表現循序提升難度。</div>
+        </div>
+
+        <div class="mode-card timed" onclick="app.startTimedMode()">
+          <div class="mode-icon">⏱️</div>
+          <div class="mode-title">限時挑戰</div>
+          <div class="mode-desc">60秒倒數計時！考驗計算熟練度與反應速度。</div>
+        </div>
+
+        <div class="mode-card adventure" onclick="app.showAdventureMap()">
+          <div class="mode-icon">🗺️</div>
+          <div class="mode-title">闖關冒險</div>
+          <div class="mode-desc">關卡式地圖進度，解鎖新主題並賺取通關三星獎勵！</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 畫面二：答題頁 -->
+    <section id="view-quiz" class="view-section">
+      <div class="quiz-header">
+        <div class="quiz-info">
+          <span id="quiz-mode-tag" class="tag-badge bg-info">自由練習</span>
+          <span id="quiz-difficulty-tag" class="tag-badge bg-easy">簡單</span>
+          <span id="quiz-progress-text" style="font-weight:700; font-size:0.9rem; color:var(--text-muted);">第 1 題</span>
+        </div>
+        <div id="quiz-timer-area" class="timer-display" style="display:none;">
+          ⏳ <span id="timer-count">60</span>s
+        </div>
+      </div>
+
+      <div class="quiz-card">
+        <div id="question-category" class="question-category">四則運算</div>
+        <div id="question-text" class="question-text">24 ÷ 6 + 3 = ?</div>
+
+        <form class="answer-form" onsubmit="app.handleAnswerSubmit(event)">
+          <div class="input-wrapper">
+            <input type="text" id="answer-input" class="answer-input" placeholder="請輸入答案" autocomplete="off">
+          </div>
+          <button type="submit" id="btn-submit" class="btn-primary">送出答案</button>
+        </form>
+
+        <!-- 解題步驟與答題回饋區 -->
+        <div id="feedback-box" class="feedback-box">
+          <div class="feedback-header">
+            <span id="feedback-icon">✅</span>
+            <span id="feedback-title">答對了！</span>
+          </div>
+          <div id="feedback-detail">
+            <div>你的答案：<strong id="user-ans-disp">7</strong></div>
+            <div>正確答案：<strong id="correct-ans-disp">7</strong></div>
+          </div>
+          <ol id="solution-steps" class="solution-steps">
+            <!-- 動態插入步驟 -->
+          </ol>
+          <div class="next-action-area">
+            <button id="btn-next" class="btn-primary" style="width:auto; padding:10px 24px;" onclick="app.nextQuestion()">下一題 ➔</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 畫面三：闖關地圖 -->
+    <section id="view-adventure" class="view-section">
+      <div class="map-container">
+        <div class="map-title">🚩 闖關冒險地圖</div>
+        <div class="level-path" id="level-path-container">
+          <!-- 動態渲染關卡節點 -->
+        </div>
+        <div style="margin-top:28px;">
+          <button class="btn-secondary" onclick="app.showHome()">返回首頁</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 畫面四：成績與獎勵頁 -->
+    <section id="view-result" class="view-section">
+      <div class="result-card">
+        <img id="result-mascot" src="assets/dive_cheer.png" alt="歡呼吉祥物" style="width:100px; height:100px; margin-bottom:12px;" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%2306D6A0\'/><text x=\'50\' y=\'60\' font-size=\'40\' text-anchor=\'middle\' fill=\'white\'>🎉</text></svg>';">
+        <h2 id="result-title" class="result-title">挑戰完成！</h2>
+        
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div id="res-total" class="stat-value">10</div>
+            <div class="stat-label">總作答題數</div>
+          </div>
+          <div class="stat-item">
+            <div id="res-correct" class="stat-value" style="color:var(--accent-green);">8</div>
+            <div class="stat-label">答對題數</div>
+          </div>
+          <div class="stat-item">
+            <div id="res-accuracy" class="stat-value" style="color:var(--primary-blue);">80%</div>
+            <div class="stat-label">答題正確率</div>
+          </div>
+          <div class="stat-item">
+            <div id="res-stars" class="stat-value" style="color:var(--primary-yellow);">⭐ +8</div>
+            <div class="stat-label">獲得星星</div>
+          </div>
+        </div>
+
+        <div id="res-badges-box" class="badges-unlocked" style="display:none;">
+          <strong>🎉 新解鎖徽章：</strong>
+          <span id="res-badges-list">連勝小高手</span>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-secondary" onclick="app.showHome()">返回首頁</button>
+          <button id="btn-replay" class="btn-primary" onclick="app.replayCurrentMode()">再玩一次</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 徽章成就 Modal -->
+  <div id="modal-badges" class="modal-overlay">
+    <div class="modal-content">
+      <h3>🏆 成就徽章館</h3>
+      <div id="badge-grid" class="badge-grid">
+        <!-- 動態渲染徽章列表 -->
+      </div>
+      <button class="btn-primary" onclick="app.closeModal('modal-badges')">關閉</button>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       10. JavaScript 核心邏輯架構 (Single-File Architecture)
+       ========================================================================== */
+
+    // --- A. 狀態管理與 LocalStorage ---
+    const STORAGE_KEY = 'math_playground_v1';
+
+    const BADGES_DEF = [
+      { id: 'badge_first', name: '初次出發', desc: '首次完成一題', icon: '🌱' },
+      { id: 'badge_streak', name: '連勝小高手', desc: '連續答對 3 題', icon: '🔥' },
+      { id: 'badge_master', name: '計算小達人', desc: '累積答對 10 題', icon: '⚡' },
+      { id: 'badge_timed', name: '挑戰勇者', desc: '完成一次限時挑戰', icon: '⏱️' },
+      { id: 'badge_adventure', name: '闖關冒險家', desc: '首次完成一個關卡', icon: '🗺️' },
+      { id: 'badge_allrounder', name: '數學全能王', desc: '練習涵蓋 4 種以上數學領域', icon: '👑' }
+    ];
+
+    const ADVENTURE_LEVELS = [
+      { id: 1, name: '第一關：基礎小試身手', reqCount: 3, diff: 'easy', category: 'arithmetic' },
+      { id: 2, name: '第二關：分數與小數地帶', reqCount: 3, diff: 'easy', category: 'fractions' },
+      { id: 3, name: '第三關：幾何圖形探險', reqCount: 4, diff: 'medium', category: 'geometry' },
+      { id: 4, name: '第四關：生活應用大考驗', reqCount: 4, diff: 'medium', category: 'word' },
+      { id: 5, name: '第五關：綜合數學終極戰', reqCount: 5, diff: 'hard', category: 'comprehensive' }
+    ];
+
+    class Store {
+      constructor() {
+        this.data = this.load();
+      }
+
+      getDefaults() {
+        return {
+          stars: 0,
+          totalAnswered: 0,
+          totalCorrect: 0,
+          consecutiveCorrect: 0,
+          earnedBadges: [],
+          unlockedLevels: [1],
+          levelStars: {},
+          categoriesPlayed: []
+        };
+      }
+
+      load() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return this.getDefaults();
+          const parsed = JSON.parse(raw);
+          return { ...this.getDefaults(), ...parsed };
+        } catch (e) {
+          console.warn('LocalStorage data error, using default.', e);
+          return this.getDefaults();
+        }
+      }
+
+      save() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+        } catch (e) {
+          console.error('Failed to save to localStorage.', e);
+        }
+      }
+
+      reset() {
+        localStorage.removeItem(STORAGE_KEY);
+        this.data = this.getDefaults();
+        this.save();
+      }
+    }
+
+    // --- B. 題庫產生引擎 (Question Engine) ---
+    class QuestionEngine {
+      static generate(categoryKey = 'comprehensive', difficulty = 'easy') {
+        let cat = categoryKey;
+        if (cat === 'comprehensive') {
+          const cats = ['arithmetic', 'fractions', 'geometry', 'word'];
+          cat = cats[Math.floor(Math.random() * cats.length)];
+        }
+
+        switch (cat) {
+          case 'arithmetic': return this.genArithmetic(difficulty);
+          case 'fractions': return this.genFractions(difficulty);
+          case 'geometry': return this.genGeometry(difficulty);
+          case 'word': return this.genWordProblem(difficulty);
+          default: return this.genArithmetic(difficulty);
+        }
+      }
+
+      static getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      // 1. 四則運算
+      static genArithmetic(diff) {
+        if (diff === 'easy') {
+          const isAdd = Math.random() > 0.5;
+          const a = this.getRandomInt(5, 50);
+          const b = this.getRandomInt(5, 50);
+          if (isAdd) {
+            return {
+              categoryName: '四則運算',
+              qText: `${a} + ${b} = ?`,
+              answer: `${a + b}`,
+              answerType: 'number',
+              steps: [
+                `將個位數與十位數分別對齊相加。`,
+                `${a} + ${b} = ${a + b}。`,
+                `答案為 ${a + b}。`
+              ]
+            };
+          } else {
+            const max = Math.max(a, b);
+            const min = Math.min(a, b);
+            return {
+              categoryName: '四則運算',
+              qText: `${max} - ${min} = ?`,
+              answer: `${max - min}`,
+              answerType: 'number',
+              steps: [
+                `將較大的數減去較小的數。`,
+                `${max} - ${min} = ${max - min}。`,
+                `答案為 ${max - min}。`
+              ]
+            };
+          }
+        } else if (diff === 'medium') {
+          const isMul = Math.random() > 0.5;
+          if (isMul) {
+            const a = this.getRandomInt(3, 12);
+            const b = this.getRandomInt(3, 12);
+            return {
+              categoryName: '四則運算',
+              qText: `${a} × ${b} = ?`,
+              answer: `${a * b}`,
+              answerType: 'number',
+              steps: [`使用乘法九九乘法表計算：`, `${a} × ${b} = ${a * b}。`]
+            };
+          } else {
+            const b = this.getRandomInt(2, 9);
+            const ans = this.getRandomInt(2, 12);
+            const a = b * ans;
+            return {
+              categoryName: '四則運算',
+              qText: `${a} ÷ ${b} = ?`,
+              answer: `${ans}`,
+              answerType: 'number',
+              steps: [`思考哪一個數乘以 ${b} 會等於 ${a}。`, `${a} ÷ ${b} = ${ans}。`]
+            };
+          }
+        } else {
+          // 混合運算: 24 ÷ 6 + 3 或 15 + 4 × 5
+          const b = this.getRandomInt(2, 6);
+          const ansDiv = this.getRandomInt(2, 8);
+          const a = b * ansDiv;
+          const c = this.getRandomInt(2, 10);
+          return {
+            categoryName: '四則運算',
+            qText: `${a} ÷ ${b} + ${c} = ?`,
+            answer: `${ansDiv + c}`,
+            answerType: 'number',
+            steps: [
+              `依據「先乘除後加減」原則，先計算除法：${a} ÷ ${b} = ${ansDiv}。`,
+              `再計算加法：${ansDiv} + ${c} = ${ansDiv + c}。`,
+              `最終答案為 ${ansDiv + c}。`
+            ]
+          };
+        }
+      }
+
+      // 2. 分數與小數
+      static genFractions(diff) {
+        if (diff === 'easy') {
+          // 同分母分數加法
+          const den = this.getRandomInt(4, 9);
+          const num1 = this.getRandomInt(1, 3);
+          const num2 = this.getRandomInt(1, 3);
+          return {
+            categoryName: '分數與小數',
+            qText: `${num1}/${den} + ${num2}/${den} = ?`,
+            answer: `${num1 + num2}/${den}`,
+            answerType: 'fraction',
+            steps: [
+              `分母相同時，分母保持不變 (${den})。`,
+              `將分子直接相加：${num1} + ${num2} = ${num1 + num2}。`,
+              `結果為 ${num1 + num2}/${den}。`
+            ]
+          };
+        } else if (diff === 'medium') {
+          // 簡單分數轉小數，如 1/2 = 0.5, 3/4 = 0.75
+          const pairs = [
+            { q: '1/2', a: '0.5' },
+            { q: '1/4', a: '0.25' },
+            { q: '3/4', a: '0.75' },
+            { q: '1/5', a: '0.2' },
+            { q: '2/5', a: '0.4' }
+          ];
+          const item = pairs[this.getRandomInt(0, pairs.length - 1)];
+          return {
+            categoryName: '分數與小數',
+            qText: `請將分數 ${item.q} 化為小數：`,
+            answer: item.a,
+            answerType: 'number',
+            steps: [
+              `將分子除以分母。`,
+              `例如 ${item.q} 即為 ${item.q.replace('/', ' ÷ ')} = ${item.a}。`
+            ]
+          };
+        } else {
+          // 小數加減乘
+          const a = (this.getRandomInt(10, 50) / 10).toFixed(1);
+          const b = (this.getRandomInt(10, 50) / 10).toFixed(1);
+          const ans = (parseFloat(a) + parseFloat(b)).toFixed(1);
+          return {
+            categoryName: '分數與小數',
+            qText: `${a} + ${b} = ?`,
+            answer: `${ans}`,
+            answerType: 'number',
+            steps: [
+              `對齊小數點後進行加法計算。`,
+              `${a} + ${b} = ${ans}。`
+            ]
+          };
+        }
+      }
+
+      // 3. 幾何與測量
+      static genGeometry(diff) {
+        if (diff === 'easy') {
+          // 長方形周長
+          const w = this.getRandomInt(3, 10);
+          const h = this.getRandomInt(3, 10);
+          const ans = (w + h) * 2;
+          return {
+            categoryName: '幾何與測量',
+            qText: `長方形的長為 ${w} 公分、寬為 ${h} 公分，請問周長是多少公分？`,
+            answer: `${ans}`,
+            answerType: 'number',
+            steps: [
+              `長方形周長公式為：(長 + 寬) × 2。`,
+              `計算：(${w} + ${h}) × 2 = ${w + h} × 2 = ${ans}。`,
+              `答案為 ${ans} 公分。`
+            ]
+          };
+        } else if (diff === 'medium') {
+          // 長方形面積
+          const w = this.getRandomInt(4, 12);
+          const h = this.getRandomInt(3, 9);
+          const ans = w * h;
+          return {
+            categoryName: '幾何與測量',
+            qText: `長方形的長為 ${w} 公分、寬為 ${h} 公分，請問面積是多少平方公分？`,
+            answer: `${ans}`,
+            answerType: 'number',
+            steps: [
+              `長方形面積公式為：長 × 寬。`,
+              `計算：${w} × ${h} = ${ans}。`,
+              `答案為 ${ans} 平方公分。`
+            ]
+          };
+        } else {
+          // 時間單位換算
+          const hrs = this.getRandomInt(2, 5);
+          const mins = this.getRandomInt(10, 50);
+          const ans = hrs * 60 + mins;
+          return {
+            categoryName: '幾何與測量',
+            qText: `${hrs} 小時 ${mins} 分鐘等於多少分鐘？`,
+            answer: `${ans}`,
+            answerType: 'number',
+            steps: [
+              `1 小時等於 60 分鐘。`,
+              `${hrs} 小時 = ${hrs} × 60 = ${hrs * 60} 分鐘。`,
+              `總分鐘數：${hrs * 60} + ${mins} = ${ans} 分鐘。`
+            ]
+          };
+        }
+      }
+
+      // 4. 生活應用題
+      static genWordProblem(diff) {
+        if (diff === 'easy') {
+          const money = 100;
+          const cost = this.getRandomInt(25, 85);
+          const ans = money - cost;
+          return {
+            categoryName: '生活應用題',
+            qText: `小明帶了 ${money} 元去文具店，買了一支 ${cost} 元的鋼筆，請問還剩下多少元？`,
+            answer: `${ans}`,
+            answerType: 'number',
+            steps: [
+              `用帶的總金額減去花費金額。`,
+              `${money} - ${cost} = ${ans}。`,
+              `還剩下 ${ans} 元。`
+            ]
+          };
+        } else if (diff === 'medium') {
+          const people = this.getRandomInt(3, 6);
+          const each = this.getRandomInt(4, 9);
+          const total = people * each;
+          return {
+            categoryName: '生活應用題',
+            qText: `媽媽把 ${total} 顆蘋果平均分給 ${people} 個小朋友，請問每個小朋友可以分到幾顆？`,
+            answer: `${each}`,
+            answerType: 'number',
+            steps: [
+              `使用除法分配總數量：${total} ÷ ${people}。`,
+              `${total} ÷ ${people} = ${each}。`,
+              `每個小朋友可分得 ${each} 顆。`
+            ]
+          };
+        } else {
+          const price = this.getRandomInt(35, 65);
+          const count = 3;
+          const pay = 200;
+          const totalCost = price * count;
+          const ans = pay - totalCost;
+          return {
+            categoryName: '生活應用題',
+            qText: `小華買了 ${count} 本每本 ${price} 元的繪本，付給店員 ${pay} 元，請問店員應該找回多少元？`,
+            answer: `${ans}`,
+            answerType: 'number',
+            steps: [
+              `先算繪本總價格：${price} × ${count} = ${totalCost} 元。`,
+              `再計算找回金額：${pay} - ${totalCost} = ${ans} 元。`,
+              `應找回 ${ans} 元。`
+            ]
+          };
+        }
+      }
+    }
+
+    // --- C. 答案驗證器 (Answer Evaluator) ---
+    class AnswerEvaluator {
+      static parseFraction(str) {
+        if (!str.includes('/')) return null;
+        const parts = str.split('/');
+        if (parts.length !== 2) return null;
+        const num = parseFloat(parts[0].trim());
+        const den = parseFloat(parts[1].trim());
+        if (isNaN(num) || isNaN(den) || den === 0) return null;
+        return num / den;
+      }
+
+      static evaluate(userStr, targetStr, answerType) {
+        const trimmed = (userStr || '').trim();
+        if (!trimmed) {
+          return { isValid: false, message: '請先輸入答案喔！' };
+        }
+
+        // 分數比對 (支援輸入 1/2 或 0.5)
+        if (answerType === 'fraction' || targetStr.includes('/')) {
+          const userFracVal = this.parseFraction(trimmed);
+          const targetFracVal = this.parseFraction(targetStr);
+
+          if (userFracVal !== null && targetFracVal !== null) {
+            const isMatch = Math.abs(userFracVal - targetFracVal) < 1e-5;
+            return { isValid: true, isCorrect: isMatch };
+          }
+        }
+
+        // 數值比對 (包含小數精度與格式容錯 2 與 2.0)
+        const userNum = parseFloat(trimmed);
+        const targetNum = parseFloat(targetStr);
+
+        if (!isNaN(userNum) && !isNaN(targetNum)) {
+          const isMatch = Math.abs(userNum - targetNum) < 1e-5;
+          return { isValid: true, isCorrect: isMatch };
+        }
+
+        // 字串完全相等容錯
+        return {
+          isValid: true,
+          isCorrect: trimmed.toLowerCase() === targetStr.trim().toLowerCase()
+        };
+      }
+    }
+
+    // --- D. 應用程式主要控制器 (App Controller) ---
+    class App {
+      constructor() {
+        this.store = new Store();
+        this.currentMode = 'practice'; // practice | timed | adventure
+        this.currentDifficulty = 'easy'; // easy | medium | hard
+        this.currentQuestion = null;
+        this.currentLevel = null;
+
+        // Session Stats
+        this.sessionTotal = 0;
+        this.sessionCorrect = 0;
+        this.sessionWrong = 0;
+        this.sessionStars = 0;
+        this.consecutiveCorrectInSession = 0;
+
+        // Timed mode timer
+        this.timerInterval = null;
+        this.timeLeft = 60;
+        this.isSubmitted = false;
+
+        this.initUI();
+      }
+
+      initUI() {
+        this.updateHeaderStats();
+        this.renderBadgesGrid();
+      }
+
+      updateHeaderStats() {
+        document.getElementById('header-stars').innerText = this.store.data.stars;
+      }
+
+      showView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        window.scrollTo(0, 0);
+      }
+
+      showHome() {
+        this.clearIntervals();
+        this.showView('view-home');
+      }
+
+      // --- 模式啟動邏輯 ---
+      startPracticeMode() {
+        this.currentMode = 'practice';
+        this.currentDifficulty = 'easy';
+        this.resetSessionStats();
+
+        document.getElementById('quiz-mode-tag').innerText = '自由練習';
+        document.getElementById('quiz-timer-area').style.display = 'none';
+
+        this.showView('view-quiz');
+        this.nextQuestion();
+      }
+
+      startTimedMode() {
+        this.currentMode = 'timed';
+        this.currentDifficulty = 'easy';
+        this.resetSessionStats();
+        this.timeLeft = 60;
+
+        document.getElementById('quiz-mode-tag').innerText = '限時挑戰';
+        document.getElementById('quiz-timer-area').style.display = 'flex';
+        document.getElementById('timer-count').innerText = this.timeLeft;
+
+        this.showView('view-quiz');
+        this.nextQuestion();
+
+        this.clearIntervals();
+        this.timerInterval = setInterval(() => {
+          this.timeLeft--;
+          document.getElementById('timer-count').innerText = this.timeLeft;
+          if (this.timeLeft <= 0) {
+            this.clearIntervals();
+            this.finishSession();
+          }
+        }, 1000);
+      }
+
+      showAdventureMap() {
+        this.showView('view-adventure');
+        this.renderAdventureMap();
+      }
+
+      startAdventureLevel(levelObj) {
+        this.currentMode = 'adventure';
+        this.currentLevel = levelObj;
+        this.currentDifficulty = levelObj.diff;
+        this.resetSessionStats();
+
+        document.getElementById('quiz-mode-tag').innerText = levelObj.name;
+        document.getElementById('quiz-timer-area').style.display = 'none';
+
+        this.showView('view-quiz');
+        this.nextQuestion();
+      }
+
+      resetSessionStats() {
+        this.sessionTotal = 0;
+        this.sessionCorrect = 0;
+        this.sessionWrong = 0;
+        this.sessionStars = 0;
+        this.consecutiveCorrectInSession = 0;
+        this.isSubmitted = false;
+      }
+
+      clearIntervals() {
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+      }
+
+      // --- 題目載入與呈現 ---
+      nextQuestion() {
+        if (this.currentMode === 'adventure' && this.sessionTotal >= this.currentLevel.reqCount) {
+          this.finishSession();
+          return;
+        }
+
+        this.isSubmitted = false;
+        const category = this.currentLevel ? this.currentLevel.category : 'comprehensive';
+        this.currentQuestion = QuestionEngine.generate(category, this.currentDifficulty);
+
+        // UI 升級與難度標籤更新
+        const diffTag = document.getElementById('quiz-difficulty-tag');
+        diffTag.innerText = this.currentDifficulty === 'easy' ? '簡單' : (this.currentDifficulty === 'medium' ? '中等' : '困難');
+        diffTag.className = `tag-badge ${this.currentDifficulty === 'easy' ? 'bg-easy' : (this.currentDifficulty === 'medium' ? 'bg-medium' : 'bg-hard')}`;
+
+        document.getElementById('quiz-progress-text').innerText = `第 ${this.sessionTotal + 1} 題`;
+        document.getElementById('question-category').innerText = this.currentQuestion.categoryName;
+        document.getElementById('question-text').innerText = this.currentQuestion.qText;
+
+        const input = document.getElementById('answer-input');
+        input.value = '';
+        input.disabled = false;
+        document.getElementById('btn-submit').disabled = false;
+
+        document.getElementById('feedback-box').style.display = 'none';
+        input.focus();
+      }
+
+      // --- 作答送出處理 ---
+      handleAnswerSubmit(e) {
+        e.preventDefault();
+        if (this.isSubmitted) return;
+
+        const inputEl = document.getElementById('answer-input');
+        const userVal = inputEl.value;
+
+        const evalResult = AnswerEvaluator.evaluate(userVal, this.currentQuestion.answer, this.currentQuestion.answerType);
+
+        if (!evalResult.isValid) {
+          alert(evalResult.message);
+          return;
+        }
+
+        this.isSubmitted = true;
+        inputEl.disabled = true;
+        document.getElementById('btn-submit').disabled = true;
+
+        this.sessionTotal++;
+        this.store.data.totalAnswered++;
+
+        // 記錄領域
+        if (!this.store.data.categoriesPlayed.includes(this.currentQuestion.categoryName)) {
+          this.store.data.categoriesPlayed.push(this.currentQuestion.categoryName);
+        }
+
+        const isCorrect = evalResult.isCorrect;
+        const feedbackBox = document.getElementById('feedback-box');
+
+        if (isCorrect) {
+          this.sessionCorrect++;
+          this.sessionStars++;
+          this.consecutiveCorrectInSession++;
+          this.store.data.totalCorrect++;
+          this.store.data.consecutiveCorrect++;
+          this.store.data.stars++;
+
+          feedbackBox.className = 'feedback-box correct';
+          document.getElementById('feedback-icon').innerText = '🎉';
+          document.getElementById('feedback-title').innerText = '答對了！獲得 1 顆星星 ⭐';
+
+          // 難度自動提升機制 (連續答對 3 題升級)
+          if (this.consecutiveCorrectInSession >= 3) {
+            if (this.currentDifficulty === 'easy') this.currentDifficulty = 'medium';
+            else if (this.currentDifficulty === 'medium') this.currentDifficulty = 'hard';
+          }
+        } else {
+          this.sessionWrong++;
+          this.consecutiveCorrectInSession = 0;
+          this.store.data.consecutiveCorrect = 0;
+
+          feedbackBox.className = 'feedback-box wrong';
+          document.getElementById('feedback-icon').innerText = '❌';
+          document.getElementById('feedback-title').innerText = '再接再厲！別灰心喔';
+        }
+
+        document.getElementById('user-ans-disp').innerText = userVal;
+        document.getElementById('correct-ans-disp').innerText = this.currentQuestion.answer;
+
+        // 渲染解題步驟
+        const stepsOl = document.getElementById('solution-steps');
+        stepsOl.innerHTML = '';
+        this.currentQuestion.steps.forEach(s => {
+          const li = document.createElement('li');
+          li.innerText = s;
+          stepsOl.appendChild(li);
+        });
+
+        feedbackBox.style.display = 'block';
+
+        // 檢查成就徽章與儲存進度
+        this.checkBadges();
+        this.store.save();
+        this.updateHeaderStats();
+      }
+
+      // --- 結束與結算頁面 ---
+      finishSession() {
+        this.clearIntervals();
+
+        // 闖關模式進度解鎖與三星計算
+        if (this.currentMode === 'adventure' && this.currentLevel) {
+          const req = this.currentLevel.reqCount;
+          const starEarned = Math.min(3, Math.ceil((this.sessionCorrect / req) * 3)) || 1;
+
+          this.store.data.levelStars[this.currentLevel.id] = Math.max(
+            this.store.data.levelStars[this.currentLevel.id] || 0,
+            starEarned
+          );
+
+          // 解鎖下一關
+          const nextLevelId = this.currentLevel.id + 1;
+          if (nextLevelId <= ADVENTURE_LEVELS.length && !this.store.data.unlockedLevels.includes(nextLevelId)) {
+            this.store.data.unlockedLevels.push(nextLevelId);
+          }
+          this.store.save();
+        }
+
+        // 成績 UI 更新
+        document.getElementById('res-total').innerText = this.sessionTotal;
+        document.getElementById('res-correct').innerText = this.sessionCorrect;
+
+        const accuracy = this.sessionTotal > 0 ? Math.round((this.sessionCorrect / this.sessionTotal) * 100) : 0;
+        document.getElementById('res-accuracy').innerText = `${accuracy}%`;
+        document.getElementById('res-stars').innerText = `⭐ +${this.sessionStars}`;
+
+        this.showView('view-result');
+      }
+
+      replayCurrentMode() {
+        if (this.currentMode === 'practice') this.startPracticeMode();
+        else if (this.currentMode === 'timed') this.startTimedMode();
+        else if (this.currentMode === 'adventure' && this.currentLevel) this.startAdventureLevel(this.currentLevel);
+        else this.showHome();
+      }
+
+      // --- 闖關冒險地圖渲染 ---
+      renderAdventureMap() {
+        const container = document.getElementById('level-path-container');
+        container.innerHTML = '';
+
+        ADVENTURE_LEVELS.forEach(lvl => {
+          const isUnlocked = this.store.data.unlockedLevels.includes(lvl.id);
+          const starsEarned = this.store.data.levelStars[lvl.id] || 0;
+
+          const node = document.createElement('div');
+          let classNames = 'level-node ';
+          if (starsEarned > 0) classNames += 'completed ';
+          else if (isUnlocked) classNames += 'unlocked ';
+          else classNames += 'locked ';
+
+          node.className = classNames;
+          node.innerHTML = `
+            <div>關卡 ${lvl.id}</div>
+            <div class="level-stars">${isUnlocked ? '⭐'.repeat(starsEarned) || '☆☆☆' : '🔒'}</div>
+          `;
+
+          if (isUnlocked) {
+            node.onclick = () => this.startAdventureLevel(lvl);
+          } else {
+            node.onclick = () => alert('請先完成前一關卡以解鎖此關喔！');
+          }
+
+          container.appendChild(node);
+        });
+      }
+
+      // --- 成就徽章系統 ---
+      checkBadges() {
+        const newEarned = [];
+        const data = this.store.data;
+
+        const addIfNew = (badgeId) => {
+          if (!data.earnedBadges.includes(badgeId)) {
+            data.earnedBadges.push(badgeId);
+            const bDef = BADGES_DEF.find(b => b.id === badgeId);
+            if (bDef) newEarned.push(bDef.name);
+          }
+        };
+
+        if (data.totalAnswered >= 1) addIfNew('badge_first');
+        if (data.consecutiveCorrect >= 3) addIfNew('badge_streak');
+        if (data.totalCorrect >= 10) addIfNew('badge_master');
+        if (this.currentMode === 'timed') addIfNew('badge_timed');
+        if (this.currentMode === 'adventure' && this.sessionCorrect >= 1) addIfNew('badge_adventure');
+        if (data.categoriesPlayed.length >= 4) addIfNew('badge_allrounder');
+
+        if (newEarned.length > 0) {
+          this.store.save();
+          this.renderBadgesGrid();
+        }
+      }
+
+      renderBadgesGrid() {
+        const grid = document.getElementById('badge-grid');
+        grid.innerHTML = '';
+
+        BADGES_DEF.forEach(b => {
+          const isEarned = this.store.data.earnedBadges.includes(b.id);
+          const item = document.createElement('div');
+          item.className = `badge-item ${isEarned ? 'earned' : ''}`;
+          item.innerHTML = `
+            <div class="badge-icon">${b.icon}</div>
+            <strong>${b.name}</strong>
+            <div style="font-size:0.75rem; margin-top:2px; color:var(--text-muted);">${b.desc}</div>
+          `;
+          grid.appendChild(item);
+        });
+      }
+
+      showBadgesModal() {
+        this.renderBadgesGrid();
+        document.getElementById('modal-badges').classList.add('active');
+      }
+
+      closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+      }
+
+      confirmResetData() {
+        if (confirm('確定要清除所有遊戲進度與星星紀錄嗎？此操作無法復原喔！')) {
+          this.store.reset();
+          this.updateHeaderStats();
+          this.renderBadgesGrid();
+          alert('進度已順利重置！');
+          this.showHome();
+        }
+      }
+    }
+
+    // 全域應用程式初始化
+    let app;
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new App();
+    });
+  </script>
+</body>
+</html>
